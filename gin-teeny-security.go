@@ -72,6 +72,9 @@ func (c Config) path() string {
 }
 
 func (c Config) requireAuth(ctx *gin.Context) bool {
+	if ctx.Request.Header.Get("Authorization") == c.Secret {
+		return false
+	}
 	return c.RequireAuth == nil || c.RequireAuth(ctx)
 }
 

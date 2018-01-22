@@ -43,27 +43,42 @@ func SampleGinApp() *gin.Engine {
 func TestAuth(t *testing.T) {
 	ts := httptest.NewServer(SampleGinApp())
 
-	// // Check public stuff can be accessed
-	// res, err := http.Get(ts.URL + "/public/")
-	// die(err)
-	// mustBe("public stuff", readString(res.Body))
-	// res.Body.Close()
+	// Check public stuff can be accessed
+	res, err := http.Get(ts.URL + "/public/")
+	die(err)
+	mustBe("public stuff", readString(res.Body))
 
-	// // Check private stuff can't be accessed
-	// res, err = http.Get(ts.URL + "/private/")
-	// die(err)
+	// Check private stuff can't be accessed
+	res, err = http.Get(ts.URL + "/private/")
+	die(err)
 
-	// mustStartWith("<h1>Login</h1>\n\n<form action=\"/enter-password/?return=%2Fprivate\"", readString(res.Body))
-	// res.Body.Close()
+	// Check entering the password as an HTTP header instead of a cookie works
+	r, err := http.NewRequest("GET", ts.URL+"/private/", nil)
+	die(err)
+	r.Header.Set("Authorization", "garden")
+	res, err = http.DefaultClient.Do(r)
+	die(err)
+	mustBe("private stuff", readString(res.Body))
 
-	// // Check entering a bad password gives you a message
-	// res, err = http.PostForm(ts.URL+"/enter-password/", url.Values{"secretAccessCode": []string{"wrong"}})
-	// die(err)
-	// mustStartWith("<h1>Login</h1>\n<h2>Wrong Password</h2>", readString(res.Body))
-	// res.Body.Close()
+	// Check entering the wrong password as an HTTP header instead of a cookie works
+	r, err = http.NewRequest("GET", ts.URL+"/private/", nil)
+	die(err)
+	r.Header.Set("Authorization", "wrong")
+	res, err = http.DefaultClient.Do(r)
+	die(err)
+	mustStartWith("<h1>Login</h1>\n\n<form action=\"/enter-password/?return=%2Fprivate\"", readString(res.Body))
+
+	res, err = http.Get(ts.URL + "/private/")
+	die(err)
+	mustStartWith("<h1>Login</h1>\n\n<form action=\"/enter-password/?return=%2Fprivate\"", readString(res.Body))
+
+	// Check entering a bad password gives you a message
+	res, err = http.PostForm(ts.URL+"/enter-password/", url.Values{"secretAccessCode": []string{"wrong"}})
+	die(err)
+	mustStartWith("<h1>Login</h1>\n<h2>Wrong Password</h2>", readString(res.Body))
 
 	// Check entering a good password lets you access things
-	res, err := http.PostForm(ts.URL+"/enter-password/?return=/private/", url.Values{"secretAccessCode": []string{"garden"}})
+	res, err = http.PostForm(ts.URL+"/enter-password/?return=/private/", url.Values{"secretAccessCode": []string{"garden"}})
 	die(err)
 	mustBe("private stuff", readString(res.Body))
 }
@@ -80,8 +95,9 @@ func mustBe(expected, actual string) {
 	}
 }
 
-func readString(r io.Reader) string {
+func readString(r io.ReadCloser) string {
 	b, e := ioutil.ReadAll(r)
+	defer r.Close()
 	die(e)
 	return string(b)
 }
