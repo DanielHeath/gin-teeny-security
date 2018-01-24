@@ -101,7 +101,7 @@ var DEFAULT_LOGIN_PAGE = template.Must(template.New("login").Parse(`
 <h1>Login</h1>
 {{ if .Message }}<h2>{{ .Message }}</h2>{{ end }}
 <form action="{{.Path}}" method="POST">
-  <input name="secretAccessCode" />
+  <input type="password" name="secretAccessCode" />
   <input type="submit" value="Login" />
 </form>
 `))
