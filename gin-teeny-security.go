@@ -75,6 +75,12 @@ func (c Config) path() string {
 }
 
 func (c Config) requireAuth(ctx *gin.Context) bool {
+	if ctx.Request.Header.Get("Authorization") != "" {
+		// Slow down brute-force attempts.
+		c.mutex.Lock()
+		defer c.mutex.Unlock()
+		time.Sleep(c.loginSlowdown())
+	}
 	if ctx.Request.Header.Get("Authorization") == c.Secret {
 		return false
 	}
