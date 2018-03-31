@@ -130,7 +130,9 @@ var DEFAULT_LOGIN_PAGE = template.Must(template.New("login").Parse(`
   <input type="submit" value="Login" />
 </form>
 
-<!-- CURL users: try setting -H 'Authorization: <your secret>' -->
+<div style="display: none">
+CURL users: try setting -H 'Authorization: <your secret>'
+</div>
 `))
 
 func (cfg *Config) Middleware(c *gin.Context) {
