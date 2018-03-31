@@ -34,12 +34,12 @@ func RequiresSecretAccessCode(secretAccessCode, path string) gin.HandlerFunc {
 
 // Main entry point
 type Config struct {
-	Path              string // defaults to 'login'
-	Secret            string // the password
-	RequireAuth       func(*gin.Context) bool // defaults to always requiring auth if unset; override to allow some public access.
-	Template          *template.Template // Markup for the login page
+	Path              string                     // defaults to 'login'
+	Secret            string                     // the password
+	RequireAuth       func(*gin.Context) bool    // defaults to always requiring auth if unset; override to allow some public access.
+	Template          *template.Template         // Markup for the login page
 	SaveKeyToSession  func(*gin.Context, string) // Override to use something other than gin-sessions
-	GetKeyFromSession func(*gin.Context) string // Override to use something other than gin-sessions
+	GetKeyFromSession func(*gin.Context) string  // Override to use something other than gin-sessions
 
 	LoginAttemptSlowdown time.Duration // Increase to slow-down attempts to brute force your password.
 	mutex                sync.Mutex
@@ -129,6 +129,8 @@ var DEFAULT_LOGIN_PAGE = template.Must(template.New("login").Parse(`
   <input type="password" name="secretAccessCode" />
   <input type="submit" value="Login" />
 </form>
+
+<!-- CURL users: try setting -H 'Authorization: <your secret>' -->
 `))
 
 func (cfg *Config) Middleware(c *gin.Context) {
